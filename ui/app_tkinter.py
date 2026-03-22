@@ -7,41 +7,95 @@ class App(tk.Tk):
         super().__init__()
         self.servicio = servicio
         self.title("Sistema de Visitantes")
-        self.geometry("700x500")
-        self.config(bg="#e3f2fd")
+        self.geometry("800x550")
+        self.config(bg="#f4f6f9")
 
+        self.crear_estilos()
         self.crear_widgets()
 
+    def crear_estilos(self):
+        style = ttk.Style()
+        style.theme_use("default")
+
+        style.configure("Treeview",
+                        background="#ffffff",
+                        foreground="#333",
+                        rowheight=25,
+                        fieldbackground="#ffffff")
+
+        style.configure("Treeview.Heading",
+                        font=("Helvetica", 11, "bold"))
+
     def crear_widgets(self):
-        # Formulario
-        frame_form = tk.Frame(self, bg="#e3f2fd")
-        frame_form.pack(pady=10)
+        # ===== TITULO =====
+        titulo = tk.Label(self,
+                          text="Sistema de Registro de Visitantes",
+                          font=("Segoe UI", 22, "bold"),
+                          bg="#f4f6f9",
+                          fg="#1a237e")
+        titulo.pack(pady=15)
 
-        tk.Label(frame_form, text="Cédula", bg="#e3f2fd").grid(row=0, column=0)
-        tk.Label(frame_form, text="Nombre", bg="#e3f2fd").grid(row=1, column=0)
-        tk.Label(frame_form, text="Motivo", bg="#e3f2fd").grid(row=2, column=0)
+        # ===== CONTENEDOR PRINCIPAL =====
+        container = tk.Frame(self, bg="#f4f6f9")
+        container.pack(fill="both", expand=True, padx=20)
 
-        self.entry_cedula = tk.Entry(frame_form)
-        self.entry_nombre = tk.Entry(frame_form)
-        self.entry_motivo = tk.Entry(frame_form)
+     # ===== FORMULARIO =====
+        frame_form = tk.LabelFrame(container,
+                                   text="Datos del Visitante",
+                                   font=("Helvetica", 12, "bold"),
+                                   bg="#ffffff",
+                                   padx=15, pady=15)
+        frame_form.pack(fill="x", pady=10)
 
-        self.entry_cedula.grid(row=0, column=1)
-        self.entry_nombre.grid(row=1, column=1)
-        self.entry_motivo.grid(row=2, column=1)
+        tk.Label(frame_form, text="Cédula:", bg="#ffffff").grid(row=0, column=0, sticky="w", pady=5)
+        tk.Label(frame_form, text="Nombre:", bg="#ffffff").grid(row=1, column=0, sticky="w", pady=5)
+        tk.Label(frame_form, text="Motivo:", bg="#ffffff").grid(row=2, column=0, sticky="w", pady=5)
 
-# Botones
-        frame_btn = tk.Frame(self, bg="#e3f2fd")
+        self.entry_cedula = tk.Entry(frame_form, width=30)
+        self.entry_nombre = tk.Entry(frame_form, width=30)
+        self.entry_motivo = tk.Entry(frame_form, width=30)
+
+        self.entry_cedula.grid(row=0, column=1, padx=10)
+        self.entry_nombre.grid(row=1, column=1, padx=10)
+        self.entry_motivo.grid(row=2, column=1, padx=10)
+
+    # ===== BOTONES =====
+        frame_btn = tk.Frame(container, bg="#f4f6f9")
         frame_btn.pack(pady=10)
-        tk.Button(frame_btn, text="Registrar", bg="#4caf50", fg="white", command=self.registrar).grid(row=0, column=0, padx=5)
-        tk.Button(frame_btn, text="Eliminar", bg="#f44336", fg="white", command=self.eliminar).grid(row=0, column=1, padx=5)
-        tk.Button(frame_btn, text="Limpiar", bg="#2196f3", fg="white", command=self.limpiar).grid(row=0, column=2, padx=5)
-    
-        # Tabla
-        self.tree = ttk.Treeview(self, columns=("Cedula", "Nombre", "Motivo"), show="headings")
-        self.tree.heading("Cedula", text="Cédula")
-        self.tree.heading("Nombre", text="Nombre")
-        self.tree.heading("Motivo", text="Motivo")
-        self.tree.pack(fill=tk.BOTH, expand=True, pady=10)
+
+        frame_btn.columnconfigure((0,1,2), weight=1)
+
+        tk.Button(frame_btn, text="Registrar",
+                  bg="#2e7d32", fg="white",
+                  font=("Helvetica", 10, "bold"),
+                  width=12,
+                  command=self.registrar).grid(row=0, column=0, padx=10)
+
+        tk.Button(frame_btn, text="Eliminar",
+                  bg="#c62828", fg="white",
+                  font=("Helvetica", 10, "bold"),
+                  width=12,
+                  command=self.eliminar).grid(row=0, column=1, padx=10)
+
+        tk.Button(frame_btn, text="Limpiar",
+                  bg="#1565c0", fg="white",
+                  font=("Helvetica", 10, "bold"),
+                  width=12,
+                  command=self.limpiar).grid(row=0, column=2, padx=10)
+
+    # ===== TABLA =====
+        frame_tabla = tk.Frame(container, bg="#f4f6f9")
+        frame_tabla.pack(fill="both", expand=True)
+
+        self.tree = ttk.Treeview(frame_tabla,
+                                 columns=("Cedula", "Nombre", "Motivo"),
+                                 show="headings")
+
+        self.tree.heading("Cedula", text="CÉDULA")
+        self.tree.heading("Nombre", text="NOMBRE")
+        self.tree.heading("Motivo", text="MOTIVO")
+
+        self.tree.pack(fill="both", expand=True)
 
     def registrar(self):
         cedula = self.entry_cedula.get()
@@ -72,8 +126,10 @@ class App(tk.Tk):
         if not seleccionado:
             messagebox.showwarning("Error", "Seleccione un registro")
             return
+        
+        item = seleccionado[0]
+        cedula = self.tree.item(item)['values'][0]
 
-        cedula = self.tree.item(seleccionado)['values'][0]
         if self.servicio.eliminar(cedula):
             messagebox.showinfo("Éxito", "Eliminado correctamente")
             self.actualizar_tabla()
@@ -81,4 +137,4 @@ class App(tk.Tk):
     def limpiar(self):
         self.entry_cedula.delete(0, tk.END)
         self.entry_nombre.delete(0, tk.END)
-        self.entry_motivo.delete(0, tk.END)
+        self.entry_motivo.delete(0, tk.END)        
